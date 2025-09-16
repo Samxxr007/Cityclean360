@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gas & Humidity Monitor</title>
+  <style>
+    body { font-family: Arial; text-align: center; background: #f8f8f8; }
+    iframe { border: none; margin: 10px; }
+    .alert { padding: 10px; margin: 10px; color: white; font-weight: bold; border-radius: 5px; }
+    .gas-alert { background: red; }
+    .humidity-alert { background: blue; }
+  </style>
+</head>
+<body>
+
+<h1>Gas & Humidity Dashboard</h1>
+<div id="alerts"></div>
+
+<!-- ThingSpeak Graphs -->
+<iframe width="450" height="260" src="https://thingspeak.com/channels/3031418/charts/1?bgcolor=%23ffffff&color=%23d62020&dynamic=true"></iframe>
+<iframe width="450" height="260" src="https://thingspeak.com/channels/3031418/charts/2?bgcolor=%23ffffff&color=%230000ff&dynamic=true"></iframe>
+
+<script>
+const CHANNEL_ID = "3031418";
+const API_KEY = "OXLF8AVX2HRFR435";
+const GAS_THRESHOLD = 300;
+const HUMIDITY_THRESHOLD = 80;
+
+async function checkData() {
+  try {
+    const response = await fetch(`https://api.thingspeak.com/channels/${CHANNEL_ID}/feeds/last.json?api_key=${API_KEY}`);
+    const data = await response.json();
+
+    const gas = parseFloat(data.field1);
+    const humidity = parseFloat(data.field2);
+    const alertsDiv = document.getElementById("alerts");
+    alertsDiv.innerHTML = "";
+
+    if (gas > GAS_THRESHOLD) {
+      alertsDiv.innerHTML += `<div class="alert gas-alert">⚠️ High Gas Level: ${gas}</div>`;
+    }
+    if (humidity > HUMIDITY_THRESHOLD) {
+      alertsDiv.innerHTML += `<div class="alert humidity-alert">⚠️ High Humidity: ${humidity}%</div>`;
+    }
+  } catch (err) {
+    console.error("Error fetching data:", err);
+  }
+}
+
+checkData();
+setInterval(checkData, 15000); // Check every 15 sec
+</script>
+
+</body>
+</html>
